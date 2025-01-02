@@ -29,8 +29,11 @@ function Lobby({ onStart, setParentLobbyId }) {
     };
 
     const handleStartGame = () => {
-        socket.emit("startGame", { lobbyId });
+        socket.emit("startGame", { lobbyId }); // Ensure lobbyId is correctly passed
+        console.log("startGame event emitted with lobbyId:", lobbyId); // Debugging log
+        onStart()
     };
+    
 
     useEffect(() => {
         socket.on("lobbyUpdate", (lobby) => {

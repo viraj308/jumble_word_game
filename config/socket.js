@@ -8,7 +8,7 @@ let lobbies = {};
 
 const setupSockets = (io) => {
     io.on("connection", (socket) => {
-        console.log(`Player connected: ${socket.id}`);
+        console.log(`Plaayer connected: ${socket.id}`);
 
         socket.on("createLobby", ({ playerName }) => {
             const lobbyId = socket.id; // Use host's socket ID as the lobby ID
@@ -74,12 +74,11 @@ const setupSockets = (io) => {
             };
             console.log(lobbies)
             console.log("hi")
+            const settings = lobby.settings
 
-            
-            
 
-            // Notify the lobby players about the new game
-            io.to(lobbyId).emit("newWord", { jumbledWord, settings: lobby.settings });
+            io.to(lobbyId).emit("newWord", { jumbledWord, settings });
+            console.log("gameStarted event emitted for lobbyId:", lobbyId, "with word:", jumbledWord, "and settings", settings);
 
             // Notify all players in the lobby that the game has started
             /* io.to(lobbyId).emit("gameStarted"); */
