@@ -1,34 +1,21 @@
-import React, { useState, useEffect } from "react";
-import socket from "../socket";
+import React from "react";
+import "./Leaderboard.css"; // Optional: Add your styling here
 
-function Leaderboard() {
-    const [players, setPlayers] = useState([]);
-
-    useEffect(() => {
-        // Listen for leaderboard updates
-        socket.on("updateLeaderboard", (updatedPlayers) => {
-            // Sort players by points (descending)
-            const sortedPlayers = [...updatedPlayers].sort((a, b) => b.points - a.points);
-            setPlayers(sortedPlayers);
-        });
-
-        return () => {
-            socket.off("updateLeaderboard");
-        };
-    }, []);
-
+const Leaderboard = ({ leaderboard }) => {
     return (
-        <div>
-            <h2>Leaderboard</h2>
-            <ol>
-                {players.map((player) => (
-                    <li key={player.id}>
-                        {player.id} - {player.points} points
+        <div className="leaderboard-container">
+            <h2 className="leaderboard-title">Leaderboard</h2>
+            <ul className="leaderboard-list">
+                {leaderboard.map((player, index) => (
+                    <li key={player.id} className="leaderboard-item">
+                        <span className="player-rank">#{index + 1}</span>
+                        <span className="player-name">{player.id}</span>
+                        <span className="player-points">{player.points} pts</span>
                     </li>
                 ))}
-            </ol>
+            </ul>
         </div>
     );
-}
+};
 
 export default Leaderboard;

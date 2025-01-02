@@ -11,12 +11,12 @@ function App() {
    const [gameStarted, setGameStarted] = useState(false);
    const [lobyId, setParentLobbyId] = useState(null);
    const [jumbledWord, setJumbledWord] = useState("");
+   const [leaderboard, setLeaderboard] = useState([]); // State to hold the leaderboard
    const [settings, setSettings] = useState({})
    
   useEffect(() => {
     socket.on("connect", () => {
         console.log(`Connected with ID: ${socket.id}`);
-        console.log("haha")
     });
 
     socket.on("newWord", ({ jumbledWord, settings }) => {
@@ -24,6 +24,10 @@ function App() {
         setGameStarted(true); // Switch to the game screen
         setJumbledWord(jumbledWord);
         setSettings(settings);
+    });
+
+    socket.on("leaderboardUpdate", (updatedLeaderboard) => {
+        setLeaderboard(updatedLeaderboard); // Update the leaderboard
     });
 
     socket.on("disconnect", () => {
@@ -34,6 +38,7 @@ function App() {
     return () => {
         // Cleanup listeners when the component unmounts
         socket.off("newWord");
+        socket.off("leaderboardUpdate");
         socket.off("connect");
         socket.off("disconnect");
         
@@ -66,7 +71,8 @@ function App() {
             ) : (
                 <>
                     <GameScreen lobyId={lobyId} jumbledWord={jumbledWord}/>
-                    <Leaderboard />
+                    {/* Display the leaderboard while the game is in progress */}
+                    <Leaderboard leaderboard={leaderboard} />
                 </>
             )}
         </div>

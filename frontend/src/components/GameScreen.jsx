@@ -14,6 +14,7 @@ function GameScreen({ lobyId, jumbledWord }) {
         socket.on("newWord", ({ jumbledWord }) => {
             setJumbleWord(jumbledWord);
         });
+
         
 
 

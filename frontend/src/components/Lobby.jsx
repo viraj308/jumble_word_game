@@ -20,7 +20,7 @@ function Lobby({ onStart, setParentLobbyId }) {
     };
 
     const handleJoinLobby = () => {
-        socket.emit("joinLobby", { lobbyId, playerName });
+        socket.emit("joinLobby", { lobbyId });
         setLobbyCreated(true);
     };
 
