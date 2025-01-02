@@ -4,6 +4,7 @@ const { Server } = require("socket.io");
 const helmet = require("helmet");
 const cors = require("cors");
 const session = require("express-session")
+const { setupSockets } = require("./config/socket")
 
 const passport = require("passport");
 const db = require("./config/db");
@@ -47,28 +48,12 @@ app.use(
 // Routes
 app.use("/auth", require("./routes/auth"));
 
-// Socket.IO for real-time events
-io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
-  
-    socket.on("startGame", (settings) => {
-      const word = generateWord(settings);
-      io.emit("newWord", word);
-    });
-  
-    socket.on("guess", (guess) => {
-      // Handle guess and scoring logic
-      io.emit("updateLeaderboard", leaderboard); // Replace leaderboard with actual logic
-    });
-  
-    socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}`);
-    });
-  });
+// Setup WebSocket events
+setupSockets(io);
 
 
 app.get('/', (req, res) => {
-  res.send('Hello, World!');
+  res.send('Game Server is Running');
 });
 
 // Start Server

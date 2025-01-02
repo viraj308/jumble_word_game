@@ -1,6 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import './App.css'
+import GameScreen from "./components/GameScreen";
+import Leaderboard from "./components/Leaderboard";
+import Lobby from "./components/Lobby";
 
 const socket = io("http://localhost:5000");
 
@@ -16,6 +19,9 @@ function App() {
 
     return () => socket.disconnect(); // Clean up on unmount
 }, []);
+
+   const [gameStarted, setGameStarted] = useState(false);
+   const [lobyId, setParentLobbyId] = useState(null);
 
    const handleLogin = () => {
         window.location.href = "http://localhost:5000/auth/google";
@@ -35,6 +41,17 @@ function App() {
       <button onClick={handleLogout} className="logout-button">
             Logout
       </button>
+      <div>
+            {!gameStarted ? (
+                <Lobby onStart={() => setGameStarted(true)} setParentLobbyId={setParentLobbyId}/>
+            ) : (
+                <>
+                    <GameScreen lobyId={lobyId} onStart={() => setGameStarted(true)}/>
+                    <Leaderboard />
+                </>
+            )}
+        </div>
+
     </>
   )
 }
