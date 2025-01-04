@@ -109,6 +109,7 @@ const setupSockets = (io) => {
                 currentRound: lobby.gameState.currentRound,
                 totalRounds: lobby.settings.rounds,
                 settings: settings,
+                lobby: lobby,
             });
 
             console.log("new word event emitted for lobby:", lobbyId);
@@ -194,14 +195,18 @@ const setupSockets = (io) => {
                 startTime: 0,
             };
             console.log(lobby)
-        
-            
-            
+
             io.to(lobbyId).emit("lobbyReset");
+            console.log("Lobby reset emitted");
+
+            setTimeout(() => {
             io.to(lobbyId).emit("lobbyUpdate", lobby);
+            console.log("Lobby update emitted:", lobby);
+            }, 100); // Delay of 100ms
+
+
             
             
-            console.log("lobbyReset event emitted for lobby:", lobbyId);
         }
         
 

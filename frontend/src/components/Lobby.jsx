@@ -55,7 +55,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
             setSettings(lobby.settings);
             setIsHost(socket.id === lobby.host);
             setParentLobbyId(lobby.host);
-            console.log("catch")
+            console.log("lobby Update")
         });
 
         

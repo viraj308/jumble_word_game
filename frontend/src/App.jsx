@@ -11,9 +11,14 @@ function App() {
    const [gameStarted, setGameStarted] = useState(false);
    const [isGameOver, setIsGameOver] = useState(false);
    const [lobbyCreated, setLobbyCreated] = useState(false); // State in App to track lobby creation
+   const [isHost1, setIsHost1] = useState(false)
 
    const [lobyId, setParentLobbyId] = useState(null);
    const [jumbledWord, setJumbledWord] = useState("");
+   const [currentRound, setCurrentRound] = useState(1);
+   const [totalRounds, setTotalRounds] = useState(5);
+   const [timer, setTimer] = useState(30); 
+
    const [leaderboard, setLeaderboard] = useState([]); // State to hold the leaderboard
    const [settings, setSettings] = useState({})
    
@@ -22,12 +27,16 @@ function App() {
         console.log(`Connected with ID: ${socket.id}`);
     });
 
-    socket.on("newWord", ({ jumbledWord, settings }) => {
+    socket.on("newWord", ({ jumbledWord, settings, currentRound, totalRounds, lobby }) => {
         console.log("newWord event received with:", { jumbledWord, settings });
         setIsGameOver(false);
         setGameStarted(true); // Switch to the game screen
         setJumbledWord(jumbledWord);
+        setCurrentRound(currentRound);
+        setTotalRounds(totalRounds);
+        setTimer(settings.timeLimit);
         setSettings(settings);
+        setIsHost1(socket.id === lobby.host);
     });
 
     socket.on("gameOver", () => {
@@ -96,14 +105,17 @@ function App() {
                 <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}/>
             ) : (
                 <>
-                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord}/>
+                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds}/>
                     <Leaderboard leaderboard={leaderboard} /> </div>)
                    
                     : (<div>
                         <h1>Game Over!</h1>
                         <Leaderboard leaderboard={leaderboard} /> 
-                        <button onClick={handleResetGame}>Reset Game</button>
-                         </div>)}
+                        {isHost1 ? ( <button onClick={handleResetGame}>Reset Game</button>)
+                    : <p>waiting for host to start the game ...</p>    
+                    }
+                         </div>)
+                         }
                 </>
             )}
         </div>
