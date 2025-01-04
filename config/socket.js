@@ -2,13 +2,11 @@ const generateWord = require("../utils/wordGenerator")
 const jumbleWord = require("../utils/jumbleWord")
 const calculatePoints = require("../utils/calculatePoints")
 
-let correctWord = "";
-let leaderboard = [];
 let lobbies = {};
 
 const setupSockets = (io) => {
     io.on("connection", (socket) => {
-        console.log(`Plaayer connected: ${socket.id}`);
+        console.log(`Player connected: ${socket.id}`);
 
         socket.on("createLobby", ({ playerName }) => {
             const lobbyId = socket.id; // Use host's socket ID as the lobby ID
@@ -19,6 +17,7 @@ const setupSockets = (io) => {
                     wordLength: 5,
                     timeLimit: 30,
                     difficulty: "medium",
+                    rounds: 2,
                 },
             };
             console.log(lobbies);
@@ -26,34 +25,66 @@ const setupSockets = (io) => {
             io.to(lobbyId).emit("lobbyUpdate", lobbies[lobbyId]);
         });
 
-        socket.on("joinLobby", ({ lobbyId, playerName }) => {
+        socket.on("joinLobby", ({ lobbyId }) => {
             const lobby = lobbies[lobbyId];
             if (lobbies[lobbyId]) {
-                lobbies[lobbyId].players.push({ id: socket.id, name: playerName });
+                /* lobbies[lobbyId].players.push({ id: socket.id }); */
+                lobbies[lobbyId].players.push({ id: socket.id, name: `Player-${socket.id}` });
                 console.log(lobbies)
+                console.log(lobby.players)
                 socket.join(lobbyId);
                 io.to(lobbyId).emit("lobbyUpdate", lobbies[lobbyId]);
 
-                 // Send the current game state to the new player
-    if (lobby.gameState) {
-        socket.emit("newWord", { jumbledWord: lobby.gameState.jumbledWord, settings: lobby.settings });
-    } else {
-        socket.emit("waiting", { message: "Waiting for game to start." });
-    }
-            } else {
-                socket.emit("error", { message: "Lobby does not exist." });
-                console.log("error joining")
-            }
+                } else {
+                    socket.emit("error", { message: "Lobby does not exist." });
+                    console.log("error joining")
+                }
         });
 
         // Start game event
-        socket.on("startGame", ({ lobbyId }) => {
+        socket.on("startGame", (data) => {
+            console.log("startGame server")
+            console.log(data)
+            const { lobbyId } = data;
             const lobby = lobbies[lobbyId];
-            if (!lobby || lobby.host !== socket.id) {
-                socket.emit("error", { message: "You are not authorized to start the game." });
+        
+           
+            console.log(lobby)
+            console.log("lobby here")
+
+            // Store the game state
+            lobby.gameState = {
+                correctWord: "",
+                jumbledWord: "",
+                leaderboard: [],
+                currentRound: 0,
+                startTime: 0,
+            };
+
+            // Notify players about the updated leaderboard
+            io.to(lobbyId).emit("leaderboardUpdate", lobby.gameState.leaderboard);
+
+            console.log(lobbies)
+            
+
+            // Start the first round
+            startRound(lobbyId);
+
+        });
+
+        function startRound(lobbyId) {
+            const lobby = lobbies[lobbyId];
+            if (!lobby) return;
+        
+            // Check if all rounds are completed
+            if (lobby.gameState.currentRound >= lobby.settings.rounds) {
+                io.to(lobbyId).emit("gameOver");
                 return;
             }
         
+            // Increment the round counter
+            lobby.gameState.currentRound++;
+
             // Use settings from the lobby
             const { wordLength, difficulty } = lobby.settings;
             console.log(wordLength, difficulty)
@@ -65,88 +96,114 @@ const setupSockets = (io) => {
             const jumbledWord = jumbleWord(correctWord);
             console.log(jumbledWord)
         
-            // Store the game state
-            lobby.gameState = {
-                correctWord,
-                jumbledWord,
-                leaderboard: [],
-                startTime: Date.now(),
-            };
-            console.log(lobbies)
-            console.log("hi")
+            // Update the game state
+            lobby.gameState.correctWord = correctWord;
+            lobby.gameState.jumbledWord = jumbledWord;
+            lobby.gameState.startTime = Date.now();
+
             const settings = lobby.settings
-
-
-            io.to(lobbyId).emit("newWord", { jumbledWord, settings });
-            console.log("gameStarted event emitted for lobbyId:", lobbyId, "with word:", jumbledWord, "and settings", settings);
-
-            // Notify all players in the lobby that the game has started
-            /* io.to(lobbyId).emit("gameStarted"); */
-
-           
         
+            // Broadcast the new word and current round
+            io.to(lobbyId).emit("newWord", {
+                jumbledWord,
+                currentRound: lobby.gameState.currentRound,
+                totalRounds: lobby.settings.rounds,
+                settings: settings,
+            });
 
-        });
-
-        // Handle the "guess" event
-socket.on("guess", ({ lobbyId, guess }) => {
-    const lobby = lobbies[lobbyId];
-
-    if (!lobby || !lobby.gameState) {
-        socket.emit("error", { message: "Game is not active in this lobby." });
-        return;
-    }
-
-    const { correctWord, leaderboard } = lobby.gameState;
-
-    // Check if the guess is correct
-    if (guess.toLowerCase() === correctWord.toLowerCase()) {
-        // Find the player in the leaderboard or add them
-        let player = leaderboard.find((p) => p.id === socket.id);
-        if (!player) {
-            player = { id: socket.id, /* name: players[socket.id]?.name || "Anonymous", */ points: 0 };
-            leaderboard.push(player);
+            console.log("new word event emitted for lobby:", lobbyId);
+        
+            // Start the timer
+            setTimeout(() => {
+                // If the round hasn't been won yet, end it and start the next
+                if (lobby.gameState.correctWord === correctWord) {
+                    io.to(lobbyId).emit("roundTimeout", { correctWord: correctWord });
+                    startRound(lobbyId);
+                }
+            }, lobby.settings.timeLimit * 1000);
         }
 
-        // Update the player's points
-        const points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
-        player.points += points;
 
-        // Sort the leaderboard by points
-        leaderboard.sort((a, b) => b.points - a.points);
-
-        // Notify players about the updated leaderboard
-        io.to(lobbyId).emit("leaderboardUpdate", leaderboard);
-
-        // Generate a new word and broadcast it
-        /* const newWord = generateWord(lobby.settings.wordLength, lobby.settings.difficulty);
-        const jumbledWord = jumbleWord(newWord);
-        console.log(lobbies) */
-
-        // Use settings from the lobby
-        const { wordLength, difficulty } = lobby.settings;
-        console.log(wordLength, difficulty)
-        const difficultyString = difficulty.toString()
-    
-        // Generate word and jumble
-        const newWord = generateWord(wordLength, difficultyString); // Implement based on settings
-        const jumbledWord = jumbleWord(newWord);
         
 
-        // Update game state
-        lobby.gameState.correctWord = newWord;
-        lobby.gameState.jumbledWord = jumbledWord;
-        lobby.gameState.startTime = Date.now();
+        // Handle the "guess" event
+        socket.on("guess", ({ lobbyId, guess }) => {
+            const lobby = lobbies[lobbyId];
 
-        console.log(lobbies)
-        console.log(lobby.gameState.leaderboard)
+            if (!lobby || !lobby.gameState) {
+                socket.emit("error", { message: "Game is not active in this lobby." });
+                return;
+            }
 
-        io.to(lobbyId).emit("newWord", { jumbledWord, settings: lobby.settings });
-    } else {
-        // Notify the player if their guess was incorrect
-        socket.emit("guessFeedback", { correct: false, message: "Incorrect guess. Try again!" });
-    }
-});
+            const { correctWord, leaderboard } = lobby.gameState;
+
+            // Check if the guess is correct
+            if (guess.toLowerCase() === correctWord.toLowerCase()) {
+                // Find the player in the leaderboard or add them
+                let player = leaderboard.find((p) => p.id === socket.id);
+                if (!player) {
+                    player = { id: socket.id, /* name: players[socket.id]?.name || "Anonymous", */ points: 0 };
+                    leaderboard.push(player);
+                }
+
+                // Update the player's points
+                const points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
+                player.points += points;
+
+                // Sort the leaderboard by points
+                leaderboard.sort((a, b) => b.points - a.points);
+
+                // Notify players about the updated leaderboard
+                io.to(lobbyId).emit("leaderboardUpdate", leaderboard);
+
+                console.log(lobbies)
+                console.log(lobby.gameState.leaderboard)
+
+                // Move to the next round
+                startRound(lobbyId);
+            } else {
+                // Notify the player if their guess was incorrect
+                socket.emit("incorrectGuess", { message: "Incorrect guess. Try again!" });
+            }
+        });
+
+        socket.on("resetGame", ({lobyId}) => {
+        
+            const lobby = lobbies[lobyId];
+            console.log("reset")
+            console.log(lobyId);
+            console.log(lobbies)
+            console.log(lobby)
+            if (!lobby || lobby.host !== socket.id) {
+                socket.emit("error", { message: "Only the host can reset the game." });
+                return;
+            }
+        
+            resetLobby(lobyId);
+        });
+
+        function resetLobby(lobbyId) {
+            const lobby = lobbies[lobbyId];
+            if (!lobby) return;
+        
+            lobby.gameState = {
+                leaderboard: [],
+                correctWord: "",
+                jumbledWord: "",
+                currentRound: 0,
+                startTime: 0,
+            };
+            console.log(lobby)
+        
+            
+            
+            io.to(lobbyId).emit("lobbyReset");
+            io.to(lobbyId).emit("lobbyUpdate", lobby);
+            
+            
+            console.log("lobbyReset event emitted for lobby:", lobbyId);
+        }
+        
 
 
         // Disconnect

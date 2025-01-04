@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
 
-function Lobby({ onStart, setParentLobbyId }) {
+function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, }) {
     const [playerName, setPlayerName] = useState("");
-    const [lobbyId, setLobbyId] = useState(""
-    );
+    const [lobbyId, setLobbyId] = useState("");
     const [players, setPlayers] = useState([]);
     const [settings, setSettings] = useState({
         wordLength: 5,
         timeLimit: 30,
         difficulty: "medium",
+        rounds: 5, // Default number of rounds
     });
     const [isHost, setIsHost] = useState(false);
-    const [lobbyCreated, setLobbyCreated] = useState(false);
+    /* const [lobbyCreated, setLobbyCreated] = useState(false); */
 
     const handleCreateLobby = () => {
+        if (!playerName) {
+            alert("Please enter your name.");
+            return;
+        }
         socket.emit("createLobby", { playerName });
         setLobbyCreated(true);
     };
 
     const handleJoinLobby = () => {
+        if (!lobbyId) {
+            alert("Please enter a lobby ID.");
+            return;
+        }
         socket.emit("joinLobby", { lobbyId });
         setLobbyCreated(true);
+        
     };
 
     const handleUpdateSettings = () => {
@@ -31,8 +40,12 @@ function Lobby({ onStart, setParentLobbyId }) {
     const handleStartGame = () => {
         socket.emit("startGame", { lobbyId }); // Ensure lobbyId is correctly passed
         console.log("startGame event emitted with lobbyId:", lobbyId); // Debugging log
-        onStart()
+        /* setGameStarted(true)
+        setIsGameOver(false) */
+        
     };
+
+
     
 
     useEffect(() => {
@@ -41,22 +54,18 @@ function Lobby({ onStart, setParentLobbyId }) {
             setPlayers(lobby.players);
             setSettings(lobby.settings);
             setIsHost(socket.id === lobby.host);
-
             setParentLobbyId(lobby.host);
+            console.log("catch")
         });
 
-        /* socket.on("gameStarted", () => {
-            console.log("The game has started")
-            onStart(); // Transition to game screen
-        }); */
-
+        
         
 
         return () => {
             socket.off("lobbyUpdate");
-            socket.off("gameStarted");
         };
-    }, [onStart]);
+    }, []);
+
 
     return (
         <div>
@@ -123,6 +132,21 @@ function Lobby({ onStart, setParentLobbyId }) {
                                     <option value="hard">Hard</option>
                                 </select>
                             </label>
+                            <label>
+                                Number of Rounds:
+                                <input
+                                    type="number"
+                                    value={settings.rounds}
+                                    onChange={(e) =>
+                                        setSettings({
+                                            ...settings,
+                                            rounds: parseInt(e.target.value) || 0,
+                                        })
+                                    }
+                                />
+                            </label>
+                            
+                            
                             <button onClick={handleUpdateSettings}>Update Settings</button>
                             <button onClick={handleStartGame}>Start Game</button>
                         </div>

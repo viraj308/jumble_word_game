@@ -9,6 +9,9 @@ import Lobby from "./components/Lobby";
 function App() {
 
    const [gameStarted, setGameStarted] = useState(false);
+   const [isGameOver, setIsGameOver] = useState(false);
+   const [lobbyCreated, setLobbyCreated] = useState(false); // State in App to track lobby creation
+
    const [lobyId, setParentLobbyId] = useState(null);
    const [jumbledWord, setJumbledWord] = useState("");
    const [leaderboard, setLeaderboard] = useState([]); // State to hold the leaderboard
@@ -21,10 +24,16 @@ function App() {
 
     socket.on("newWord", ({ jumbledWord, settings }) => {
         console.log("newWord event received with:", { jumbledWord, settings });
+        setIsGameOver(false);
         setGameStarted(true); // Switch to the game screen
         setJumbledWord(jumbledWord);
         setSettings(settings);
     });
+
+    socket.on("gameOver", () => {
+        setIsGameOver(true);
+    });
+
 
     socket.on("leaderboardUpdate", (updatedLeaderboard) => {
         setLeaderboard(updatedLeaderboard); // Update the leaderboard
@@ -34,18 +43,27 @@ function App() {
         console.log("Disconnected");
     });
 
+    socket.on("lobbyReset", () => {
+        console.log("lobby reset for everyone")
+        setGameStarted(false)
+        setLobbyCreated(true)
 
+    });
+
+    
     return () => {
         // Cleanup listeners when the component unmounts
         socket.off("newWord");
         socket.off("leaderboardUpdate");
         socket.off("connect");
         socket.off("disconnect");
+        socket.off("gameOver");
+        socket.off("lobbyReset")
         
     };
 }, []);
 
-   
+
 
    const handleLogin = () => {
         window.location.href = "http://localhost:5000/auth/google";
@@ -55,6 +73,14 @@ function App() {
    const handleLogout = () => {
         window.location.href = "http://localhost:5000/auth/logout"; // Call the logout route
     };
+
+    const handleResetGame = () => {
+        socket.emit("resetGame", {lobyId});
+        /* setGameStarted(false); */
+        setLeaderboard([]);
+        
+    };
+
   
 
   return (
@@ -67,12 +93,17 @@ function App() {
       </button>
       <div>
             {!gameStarted ? (
-                <Lobby onStart={() => socket.emit("startGame", { lobyId })} setParentLobbyId={setParentLobbyId}/>
+                <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}/>
             ) : (
                 <>
-                    <GameScreen lobyId={lobyId} jumbledWord={jumbledWord}/>
-                    {/* Display the leaderboard while the game is in progress */}
-                    <Leaderboard leaderboard={leaderboard} />
+                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord}/>
+                    <Leaderboard leaderboard={leaderboard} /> </div>)
+                   
+                    : (<div>
+                        <h1>Game Over!</h1>
+                        <Leaderboard leaderboard={leaderboard} /> 
+                        <button onClick={handleResetGame}>Reset Game</button>
+                         </div>)}
                 </>
             )}
         </div>
