@@ -1,0 +1,50 @@
+.game-screen {
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: 20px 0;
+    max-width: 600px;
+    width: 100%;
+}
+.game-screen h2 {
+    color: #2a9d8f;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+.game-screen p {
+    font-size: 1.1rem;
+    margin: 10px 0;
+    color: #333;
+}
+.game-screen strong {
+    color: #e76f51;
+}
+.game-screen input {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+.game-screen button {
+    margin-top: 10px;
+    background-color: #2a9d8f;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.game-screen button:hover {
+    background-color: #264653;
+}
+.notification {
+    color: #e76f51;
+    font-weight: bold;
+}

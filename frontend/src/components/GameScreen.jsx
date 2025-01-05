@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
 
-function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalRounds}) {
+function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalRounds, settings}) {
    /*  const [timer1, setTimer] = useState(timer);  */
     const [guess, setGuess] = useState("");
     const [notification, setNotification] = useState("");
-    const [settings, setSettings] = useState({});
+    
 
     
 
@@ -49,8 +49,15 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
     };
 
     return (
-        <div>
+        <div className="game-screen">
             <h2>Game Screen</h2>
+            <p>
+            Word Length: {settings.wordLength}&nbsp;&nbsp;&nbsp;
+            Game Difficulty: {settings.difficulty}&nbsp;&nbsp;&nbsp;
+            Time Limit: {settings.timeLimit}&nbsp;&nbsp;&nbsp;
+            Rounds: {settings.rounds}
+            </p>
+
             <p>Jumbled Word: <strong>{jumbledWord || "Waiting for game to start..."}</strong></p>
             <p>Time Left: {timer} seconds</p>
             <p>Round {currentRound} of {totalRounds}</p>
@@ -63,7 +70,7 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
             <button onClick={handleGuess} disabled={!jumbledWord}>
                 Submit Guess
             </button>
-            {notification && <p style={{ color: "red" }}>{notification}</p>}
+            {notification && <p className="notification" style={{ color: "red" }}>{notification}</p>}
         </div>
     );
 }

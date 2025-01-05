@@ -8,6 +8,22 @@ const setupSockets = (io) => {
     io.on("connection", (socket) => {
         console.log(`Player connected: ${socket.id}`);
 
+        socket.on("updateSettings", ({ lobbyId, settings }) => {
+            console.log("updateSetting event received")
+            const lobby = lobbies[lobbyId];
+            console.log(lobby)
+            if (!lobby) return;
+    
+            // Update lobby settings
+            lobby.settings = { ...lobby.settings, ...settings };
+    
+            // Broadcast updated settings to all players in the lobby
+            io.to(lobbyId).emit("settingsUpdated", lobby.settings);
+    
+            console.log(`Settings updated for lobby ${lobbyId}:`, lobby.settings);
+        });
+    
+
         socket.on("createLobby", ({ playerName }) => {
             const lobbyId = socket.id; // Use host's socket ID as the lobby ID
             lobbies[lobbyId] = {
@@ -59,6 +75,7 @@ const setupSockets = (io) => {
                 leaderboard: [],
                 currentRound: 0,
                 startTime: 0,
+                roundTimer: 0,
             };
 
             // Notify players about the updated leaderboard
@@ -75,6 +92,12 @@ const setupSockets = (io) => {
         function startRound(lobbyId) {
             const lobby = lobbies[lobbyId];
             if (!lobby) return;
+
+            // Clear any active round timer
+            if (lobby.gameState.roundTimer) {
+                clearTimeout(lobby.gameState.roundTimer);
+                lobby.gameState.roundTimer = null;
+            }
         
             // Check if all rounds are completed
             if (lobby.gameState.currentRound >= lobby.settings.rounds) {
@@ -83,7 +106,7 @@ const setupSockets = (io) => {
             }
         
             // Increment the round counter
-            lobby.gameState.currentRound++;
+            lobby.gameState.currentRound++; 
 
             // Use settings from the lobby
             const { wordLength, difficulty } = lobby.settings;
@@ -115,17 +138,30 @@ const setupSockets = (io) => {
             console.log("new word event emitted for lobby:", lobbyId);
         
             // Start the timer
-            setTimeout(() => {
+            /* setTimeout(() => {
                 // If the round hasn't been won yet, end it and start the next
                 if (lobby.gameState.correctWord === correctWord) {
                     io.to(lobbyId).emit("roundTimeout", { correctWord: correctWord });
                     startRound(lobbyId);
                 }
-            }, lobby.settings.timeLimit * 1000);
+            }, lobby.settings.timeLimit * 1000); */
+
+            // Start the timer for the current round
+            lobby.gameState.roundTimer = setTimeout(() => {
+                // If the round hasn't been won yet, emit a timeout event and move to the next round
+                if (lobby.gameState.correctWord === correctWord) {
+                    io.to(lobbyId).emit("roundTimeout", { correctWord });
+                    startRound(lobbyId);
+
+                    } 
+                }
+            , lobby.settings.timeLimit * 1000);
+
+
+
+
+
         }
-
-
-        
 
         // Handle the "guess" event
         socket.on("guess", ({ lobbyId, guess }) => {
@@ -192,7 +228,7 @@ const setupSockets = (io) => {
                 correctWord: "",
                 jumbledWord: "",
                 currentRound: 0,
-                startTime: 0,
+                startTime: null,
             };
             console.log(lobby)
 

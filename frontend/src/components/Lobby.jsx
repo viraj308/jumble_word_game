@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
+import "./Lobby.css"
 
 function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, }) {
     const [playerName, setPlayerName] = useState("");
@@ -34,6 +35,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
     };
 
     const handleUpdateSettings = () => {
+        console.log("updateSettings")
         socket.emit("updateSettings", { lobbyId, settings });
     };
 
@@ -58,11 +60,18 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
             console.log("lobby Update")
         });
 
+        socket.on("settingsUpdated", (updatedSettings) => {
+            setSettings(updatedSettings);
+            console.log(updatedSettings)
+            console.log("lobby setting caught")
+        });
+
         
         
 
         return () => {
             socket.off("lobbyUpdate");
+            socket.off("settingsUpdated")
         };
     }, []);
 
@@ -96,7 +105,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                             <li key={player.id}>{player.name}</li>
                         ))}
                     </ul>
-                    {isHost && (
+                    {isHost ? (
                         <div>
                             <h3>Game Settings</h3>
                             <label>
@@ -105,7 +114,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                                     type="number"
                                     value={settings.wordLength}
                                     onChange={(e) =>
-                                        setSettings({ ...settings, wordLength: e.target.value })
+                                        setSettings({ ...settings, wordLength: parseInt(e.target.value) })
                                     }
                                 />
                             </label>
@@ -150,7 +159,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                             <button onClick={handleUpdateSettings}>Update Settings</button>
                             <button onClick={handleStartGame}>Start Game</button>
                         </div>
-                    )}
+                    ): "waiting for the host to start the game ..."}
                 </div>
             )}
         </div>

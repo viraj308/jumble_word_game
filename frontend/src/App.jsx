@@ -105,7 +105,7 @@ function App() {
                 <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}/>
             ) : (
                 <>
-                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds}/>
+                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds} settings={settings}/>
                     <Leaderboard leaderboard={leaderboard} /> </div>)
                    
                     : (<div>
