@@ -28,12 +28,22 @@ const io = new Server(server, {
 
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+      origin: "http://localhost:5173", // Replace with your frontend's URL
+      credentials: true, // Allow cookies and credentials to be sent
+  })
+);
 app.use(express.json());
 app.use(session({
     secret: "secret-key", 
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+      secure: false, // Set to true if using HTTPS
+      sameSite: "lax", // Adjust if stricter cross-site cookie handling is needed
+  },
 }));
 
 app.use(passport.initialize());
@@ -54,6 +64,24 @@ setupSockets(io);
 
 app.get('/', (req, res) => {
   res.send('Game Server is Running');
+});
+
+// Route to fetch user profile
+app.get("/profile", (req, res) => {
+  if (req.isAuthenticated()) {
+    console.log("happy new year ....")
+    console.log("req: " ,req.user)
+    // If the user is authenticated, send their profile
+    res.json({
+      id: req.user._id,
+      googleId: req.user.googleId,
+      name: req.user.name,
+      image: req.user.image,
+    });
+  } else {
+    // If the user is not authenticated, send a 401 Unauthorized response
+    res.status(401).json({ message: "Unauthorized: Please log in first." });
+  }
 });
 
 // Start Server
