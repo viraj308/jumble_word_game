@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import "./Lobby.css"
 
-function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, }) {
-    const [playerName, setPlayerName] = useState("");
+function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, playerName, setPictureDisplay}) {
+    /* const [playerName, setPlayerName] = useState(""); */
     const [lobbyId, setLobbyId] = useState("");
     const [players, setPlayers] = useState([]);
     const [settings, setSettings] = useState({
@@ -16,12 +16,13 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
     /* const [lobbyCreated, setLobbyCreated] = useState(false); */
 
     const handleCreateLobby = () => {
-        if (!playerName) {
+      /*   if (!playerName) {
             alert("Please enter your name.");
             return;
-        }
+        } */
         socket.emit("createLobby", { playerName });
         setLobbyCreated(true);
+        setPictureDisplay(false)
     };
 
     const handleJoinLobby = () => {
@@ -29,9 +30,9 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
             alert("Please enter a lobby ID.");
             return;
         }
-        socket.emit("joinLobby", { lobbyId });
+        socket.emit("joinLobby", { lobbyId, playerName });
         setLobbyCreated(true);
-        
+        setPictureDisplay(false)
     };
 
     const handleUpdateSettings = () => {
@@ -57,7 +58,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
             setSettings(lobby.settings);
             setIsHost(socket.id === lobby.host);
             setParentLobbyId(lobby.host);
-            console.log("lobby Update")
+            console.log("lobby Update caught")
         });
 
         socket.on("settingsUpdated", (updatedSettings) => {
@@ -81,12 +82,12 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
             {!lobbyCreated ? (
                 <div>
                     <h2>Lobby</h2>
-                    <input
+                   {/*  <input
                         type="text"
                         placeholder="Enter your name"
                         value={playerName}
                         onChange={(e) => setPlayerName(e.target.value)}
-                    />
+                    /> */}
                     <button onClick={handleCreateLobby}>Create Lobby</button>
                     <input
                         type="text"
@@ -159,7 +160,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                             <button onClick={handleUpdateSettings}>Update Settings</button>
                             <button onClick={handleStartGame}>Start Game</button>
                         </div>
-                    ): "waiting for the host to start the game ..."}
+                    ): <div> "waiting for the host to start the game ..." </div>}
                 </div>
             )}
         </div>

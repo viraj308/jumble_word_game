@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
+import "./GameScreen.css"
 
-function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalRounds, settings}) {
+function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalRounds, settings, playerName}) {
    /*  const [timer1, setTimer] = useState(timer);  */
     const [guess, setGuess] = useState("");
     const [notification, setNotification] = useState("");
@@ -40,7 +41,7 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
 
     const handleGuess = () => {
         if (guess.trim()) {
-            socket.emit("guess", { lobbyId, guess });
+            socket.emit("guess", { lobbyId, guess, playerName });
             console.log(lobbyId)
             console.log(guess)
             setGuess("");

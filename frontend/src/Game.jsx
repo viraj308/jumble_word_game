@@ -26,6 +26,8 @@ function Game() {
    const [leaderboard, setLeaderboard] = useState([]); // State to hold the leaderboard
    const [settings, setSettings] = useState({})
 
+   const [pictureDisplay, setPictureDisplay] = useState(true)
+
    const navigate = useNavigate();
 
    const [isLoading, setIsLoading] = useState(true); // Add loading state
@@ -139,15 +141,22 @@ function Game() {
 
   return (
     <>
-      <h2>Welcome, {userProfile.name}</h2>
-      <img src={userProfile.image} alt="User Avatar" />
+      {pictureDisplay && userProfile && (
+  <>
+    <h2>Welcome, {userProfile.name}</h2>
+    <img src={userProfile.image} alt="User Avatar" />
+  </>
+)}
+
+
       <h1>Jumbled Word Game</h1>
       <div>
             {!gameStarted ? (
-                <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}/>
+                <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}  playerName={userProfile.name} 
+                setPictureDisplay={setPictureDisplay}/>
             ) : (
                 <>
-                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds} settings={settings}/>
+                    {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds} settings={settings} playerName={userProfile.name}/>
                     <Leaderboard leaderboard={leaderboard} /> </div>)
                    
                     : (<div>

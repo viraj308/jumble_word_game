@@ -35,17 +35,18 @@ const setupSockets = (io) => {
                     difficulty: "medium",
                     rounds: 2,
                 },
+                gameState: {}
             };
             console.log(lobbies);
             socket.join(lobbyId);
             io.to(lobbyId).emit("lobbyUpdate", lobbies[lobbyId]);
         });
 
-        socket.on("joinLobby", ({ lobbyId }) => {
+        socket.on("joinLobby", ({ lobbyId, playerName }) => {
             const lobby = lobbies[lobbyId];
             if (lobbies[lobbyId]) {
                 /* lobbies[lobbyId].players.push({ id: socket.id }); */
-                lobbies[lobbyId].players.push({ id: socket.id, name: `Player-${socket.id}` });
+                lobbies[lobbyId].players.push({ id: socket.id, name: playerName });
                 console.log(lobbies)
                 console.log(lobby.players)
                 socket.join(lobbyId);
@@ -59,14 +60,12 @@ const setupSockets = (io) => {
 
         // Start game event
         socket.on("startGame", (data) => {
-            console.log("startGame server")
-            console.log(data)
             const { lobbyId } = data;
             const lobby = lobbies[lobbyId];
         
            
             console.log(lobby)
-            console.log("lobby here")
+            
 
             // Store the game state
             lobby.gameState = {
@@ -164,7 +163,7 @@ const setupSockets = (io) => {
         }
 
         // Handle the "guess" event
-        socket.on("guess", ({ lobbyId, guess }) => {
+        socket.on("guess", ({ lobbyId, guess, playerName }) => {
             const lobby = lobbies[lobbyId];
 
             if (!lobby || !lobby.gameState) {
@@ -179,7 +178,7 @@ const setupSockets = (io) => {
                 // Find the player in the leaderboard or add them
                 let player = leaderboard.find((p) => p.id === socket.id);
                 if (!player) {
-                    player = { id: socket.id, /* name: players[socket.id]?.name || "Anonymous", */ points: 0 };
+                    player = { id: socket.id, name: playerName, points: 0 };
                     leaderboard.push(player);
                 }
 
@@ -228,7 +227,7 @@ const setupSockets = (io) => {
                 correctWord: "",
                 jumbledWord: "",
                 currentRound: 0,
-                startTime: null,
+                startTime: 0,
             };
             console.log(lobby)
 
@@ -247,7 +246,7 @@ const setupSockets = (io) => {
         
 
 
-        // Disconnect
+        /* // Disconnect
         socket.on("disconnect", () => {
             console.log(`Player disconnected: ${socket.id}`);
         
@@ -266,12 +265,63 @@ const setupSockets = (io) => {
                     if (lobbies[lobbyId].host === socket.id) {
                         // Assign the new host (first player in the list)
                         lobbies[lobbyId].host = lobbies[lobbyId].players[0].id;
+                        console.log("New host assigned:", lobbies[lobbyId].host);
+                        console.log(lobbies)
+                        console.log(lobbies[lobbyId])
                     }
                     // Emit the updated lobby data to all remaining players in the lobby
                     io.to(lobbyId).emit("lobbyUpdate", lobbies[lobbyId]);
                 }
             }
+        }); */
+
+        
+        socket.on("disconnect", () => {
+            // Find the lobby where this socket was connected
+            let lobby;
+            for (let lobbyId in lobbies) {
+                const currentLobby = lobbies[lobbyId];
+                if (currentLobby.players.some(player => player.id === socket.id)) {
+                    lobby = currentLobby;
+                    break;
+                }
+            }
+        
+            if (!lobby) return; // If no lobby found, exit
+        
+            // Remove the disconnected player from the lobby
+            lobby.players = lobby.players.filter(player => player.id !== socket.id);
+        
+            // If the disconnected player was the host, reassign the host
+            if (lobby.host === socket.id) {
+                if (lobby.players.length > 0) {
+                    // Reassign host to the first player in the list
+                    lobby.host = lobby.players[0].id;
+                    console.log("New host assigned:", lobby.host);
+        
+                    // Update the lobby in the 'lobbies' object with the new host
+                    const oldHost = socket.id;
+                    delete lobbies[oldHost];  // Remove the old host entry
+                    lobbies[lobby.host] = lobby;  // Add the lobby under the new host's ID
+        
+                    console.log("Lobby updated after host disconnect:", lobby);
+                    console.log(lobbies)
+                    // Emit the updated lobby data to all remaining players in the lobby
+                    io.to(lobby.host).emit("lobbyUpdate", lobbies[lobby.host]);
+                } else {
+                    // If no players are left, clear the lobby
+                    console.log("No players left. Clearing lobby...");
+                    delete lobbies[lobby.host]; // Delete the lobby if no players are left
+                    return;
+                }
+            }
+            
+        
+            // Any other actions can be performed here if necessary
         });
+        
+
+        
         
     });
 };

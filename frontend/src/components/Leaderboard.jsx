@@ -9,7 +9,7 @@ const Leaderboard = ({ leaderboard }) => {
                 {leaderboard.map((player, index) => (
                     <li key={player.id} className="leaderboard-item">
                         <span className="player-rank">#{index + 1}</span>
-                        <span className="player-name">{player.id}</span>
+                        <span className="player-name">{player.name}</span>
                         <span className="player-points">{player.points} pts</span>
                     </li>
                 ))}
