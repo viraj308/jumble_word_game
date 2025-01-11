@@ -2,11 +2,11 @@
     padding: 20px;
     border-radius: 10px;
     background-color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  */
+    box-shadow: none;
     text-align: center;
-    margin: 20px 0;
     max-width: 600px;
-    width: 100%;
+    width: 91%;
 }
 .game-screen h2 {
     color: #2a9d8f;
@@ -17,9 +17,12 @@
     font-size: 1.1rem;
     margin: 10px 0;
     color: #333;
+    margin: 1em 0;
 }
 .game-screen strong {
-    color: #e76f51;
+    color: white;
+    padding: 0.3em;
+    border-radius: 10px;
 }
 .game-screen input {
     padding: 10px;
@@ -46,6 +49,18 @@
 }
 .notification {
     color: #e76f51;
+    font-weight: bold;
+}
+.jumble-word {
+    background-color: black;
+}
+strong {
+    font-size: 1.5em;
+    background-color:  #2a9d8f;
+    letter-spacing: 10px;
+    color: white;
+}
+span {
     font-weight: bold;
 }
 

@@ -53,14 +53,13 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
         <div className="game-screen">
             <h2>Game Screen</h2>
             <p>
-            Word Length: {settings.wordLength}&nbsp;&nbsp;&nbsp;
-            Game Difficulty: {settings.difficulty}&nbsp;&nbsp;&nbsp;
-            Time Limit: {settings.timeLimit}&nbsp;&nbsp;&nbsp;
-            Rounds: {settings.rounds}
+            Game Difficulty: <span>{settings.difficulty}</span>&nbsp;&nbsp;&nbsp;
+            Time Limit: <span>{settings.timeLimit}</span>&nbsp;&nbsp;&nbsp;
+            Rounds: <span>{settings.rounds}</span>
             </p>
 
             <p>Jumbled Word: <strong>{jumbledWord || "Waiting for game to start..."}</strong></p>
-            <p>Time Left: {timer} seconds</p>
+            <p>Time Left: <span>{timer}</span> seconds</p>
             <p>Round {currentRound} of {totalRounds}</p>
             <input
                 type="text"

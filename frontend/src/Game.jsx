@@ -5,6 +5,8 @@ import GameScreen from "./components/GameScreen";
 import Leaderboard from "./components/Leaderboard";
 import Lobby from "./components/Lobby";
 
+import { AudioPlayer } from "../utils/audioUtils";
+
 import { useNavigate } from 'react-router-dom';
 
 
@@ -14,6 +16,11 @@ function Game() {
    const [isGameOver, setIsGameOver] = useState(false);
    const [lobbyCreated, setLobbyCreated] = useState(false); // State in App to track lobby creation
    const [isHost1, setIsHost1] = useState(false)
+
+   const [lobbyMusic, setLobbyMusic] = useState(null);
+   const [gameMusic, setGameMusic] = useState(null);
+   const [volume, setVolume] = useState(0.5); // Default volume (50%)
+
 
    const [userProfile, setUserProfile] = useState(null);
 
@@ -69,6 +76,11 @@ function Game() {
         setLobbyCreated(true)
 
     });
+    socket.on("playerLeft", ({ playerId, lobby }) => {
+        console.log(`Player ${playerId} of ${lobby} left the game`);
+        // Update the client-side UI based on new lobby state
+    });
+    
 
     
     return () => {
@@ -108,6 +120,13 @@ function Game() {
                 setIsLoading(false)
             })
     }, []);
+
+
+    useEffect(() => {
+        // Update volume for both music tracks
+        if (lobbyMusic) lobbyMusic.setVolume(volume);
+        if (gameMusic) gameMusic.setVolume(volume);
+    }, [volume, lobbyMusic, gameMusic]);
     
 
 
@@ -127,8 +146,31 @@ function Game() {
         socket.emit("resetGame", {lobyId});
         /* setGameStarted(false); */
         setLeaderboard([]);
+        gameMusic.stop();
+        lobbyMusic.play();
         
     };
+
+    // Initialize music players
+         const lobbyTrack = new AudioPlayer('/lobby-music.mp3'); // Place in the public folder
+         const gameTrack = new AudioPlayer('/game-music.mp3'); // Place in the public folder
+
+    const handleMusicOnStart = () => {
+         
+         setLobbyMusic(lobbyTrack);
+         setGameMusic(gameTrack);
+ 
+         // Play lobby music on mount
+         lobbyTrack.setVolume(volume);
+         lobbyTrack.play();
+         gameMusic.stop();
+    }
+
+    const handleMusicOnGameStart = () => {
+          // Stop lobby music and start game music
+        lobbyMusic.stop();
+        gameMusic.play();
+    }
 
     // Main Game screen, Lobby, etc.
    if (!userProfile) {
@@ -140,20 +182,38 @@ function Game() {
     }
 
   return (
-    <>
+    <div className="game-container">
       {pictureDisplay && userProfile && (
-  <>
-    <h2>Welcome, {userProfile.name}</h2>
-    <img src={userProfile.image} alt="User Avatar" />
-  </>
-)}
+                <div className="profile-container">
+                    <img 
+                        src={userProfile.image} 
+                        alt="User Avatar" 
+                        className="profile-picture" 
+                    />
+                    <h2 className="profile-name">{userProfile.name}</h2>
+                  
+                </div>
+                
+            )}
+              <div className="volume-slider">
+                        <label>Volume: {Math.round(volume * 100)}%</label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={volume}
+                            onChange={(e) => setVolume(Number(e.target.value))}
+                        />
+                    </div>
 
 
-      <h1>Jumbled Word Game</h1>
+            <h1>Jumbled Word Game</h1>
+            
       <div>
             {!gameStarted ? (
                 <Lobby setParentLobbyId={setParentLobbyId} setGameStarted={setGameStarted} setIsGameOver={setIsGameOver} setLobbyCreated={setLobbyCreated} lobbyCreated={lobbyCreated}  playerName={userProfile.name} 
-                setPictureDisplay={setPictureDisplay}/>
+                setPictureDisplay={setPictureDisplay} gameMusic={gameMusic} handleMusicOnStart={handleMusicOnStart} handleMusicOnGameStart={handleMusicOnGameStart}/>
             ) : (
                 <>
                     {!isGameOver ? (<div><GameScreen lobyId={lobyId} jumbledWord={jumbledWord} timer={timer} setTimer={setTimer} currentRound={currentRound} totalRounds={totalRounds} settings={settings} playerName={userProfile.name}/>
@@ -171,7 +231,7 @@ function Game() {
             )}
         </div>
 
-    </>
+    </div>
   )
 }
 

@@ -27,10 +27,11 @@ const setupSockets = (io) => {
         socket.on("createLobby", ({ playerName }) => {
             const lobbyId = socket.id; // Use host's socket ID as the lobby ID
             lobbies[lobbyId] = {
+                id: socket.id,
                 host: socket.id,
                 players: [{ id: socket.id, name: playerName }],
                 settings: {
-                    wordLength: 5,
+                    /* wordLength: 5, */
                     timeLimit: 30,
                     difficulty: "medium",
                     rounds: 2,
@@ -108,12 +109,12 @@ const setupSockets = (io) => {
             lobby.gameState.currentRound++; 
 
             // Use settings from the lobby
-            const { wordLength, difficulty } = lobby.settings;
-            console.log(wordLength, difficulty)
+            const { difficulty } = lobby.settings;
+            console.log(difficulty)
             const difficultyString = difficulty.toString()
         
             // Generate word and jumble
-            const correctWord = generateWord(wordLength, difficultyString); // Implement based on settings
+            const correctWord = generateWord(difficultyString); // Implement based on settings
             console.log(correctWord)
             const jumbledWord = jumbleWord(correctWord);
             console.log(jumbledWord)
@@ -182,9 +183,14 @@ const setupSockets = (io) => {
                     leaderboard.push(player);
                 }
 
-                // Update the player's points
+               /*  // Update the player's points
                 const points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
+                player.points += points; */
+                // Update the player's points
+                let points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
+                points = parseFloat(points.toFixed(2)); // Ensure two digits after the decimal
                 player.points += points;
+
 
                 // Sort the leaderboard by points
                 leaderboard.sort((a, b) => b.points - a.points);
@@ -246,7 +252,7 @@ const setupSockets = (io) => {
         
 
 
-        /* // Disconnect
+         // Disconnect
         socket.on("disconnect", () => {
             console.log(`Player disconnected: ${socket.id}`);
         
@@ -273,51 +279,14 @@ const setupSockets = (io) => {
                     io.to(lobbyId).emit("lobbyUpdate", lobbies[lobbyId]);
                 }
             }
-        }); */
-
+        }); 
         
-        socket.on("disconnect", () => {
-            // Find the lobby where this socket was connected
-            let lobby;
-            for (let lobbyId in lobbies) {
-                const currentLobby = lobbies[lobbyId];
-                if (currentLobby.players.some(player => player.id === socket.id)) {
-                    lobby = currentLobby;
-                    break;
-                }
-            }
+        process.on("uncaughtException", (err) => {
+            console.error("Unhandled Exception:", err);
+        });
         
-            if (!lobby) return; // If no lobby found, exit
-        
-            // Remove the disconnected player from the lobby
-            lobby.players = lobby.players.filter(player => player.id !== socket.id);
-        
-            // If the disconnected player was the host, reassign the host
-            if (lobby.host === socket.id) {
-                if (lobby.players.length > 0) {
-                    // Reassign host to the first player in the list
-                    lobby.host = lobby.players[0].id;
-                    console.log("New host assigned:", lobby.host);
-        
-                    // Update the lobby in the 'lobbies' object with the new host
-                    const oldHost = socket.id;
-                    delete lobbies[oldHost];  // Remove the old host entry
-                    lobbies[lobby.host] = lobby;  // Add the lobby under the new host's ID
-        
-                    console.log("Lobby updated after host disconnect:", lobby);
-                    console.log(lobbies)
-                    // Emit the updated lobby data to all remaining players in the lobby
-                    io.to(lobby.host).emit("lobbyUpdate", lobbies[lobby.host]);
-                } else {
-                    // If no players are left, clear the lobby
-                    console.log("No players left. Clearing lobby...");
-                    delete lobbies[lobby.host]; // Delete the lobby if no players are left
-                    return;
-                }
-            }
-            
-        
-            // Any other actions can be performed here if necessary
+        process.on("unhandledRejection", (reason, promise) => {
+            console.error("Unhandled Rejection at:", promise, "reason:", reason);
         });
         
 

@@ -12,8 +12,9 @@ body {
 }
 h1 {
     color: #2a9d8f;
+    margin-bottom: 0.5em;
     font-size: 2.5rem;
-    margin-bottom: 20px;
+    text-align: center;
 }
 h2 {
     color: #2a9d8f;
@@ -37,4 +38,61 @@ button:hover {
 }
 .logout-button:hover {
     background-color: #d45d40;
+}
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    justify-content: space-between;
+}
+
+.profile-picture {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #2a9d8f;
+}
+
+.profile-name {
+    color: #2a9d8f;
+}
+
+.volume-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.volume-button {
+    background-color: #2a9d8f;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.5rem;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.volume-button:hover {
+    background-color: #21867a;
+}
+
+.volume-slider {
+    margin-top: 10px;
+    text-align: center;
+    color: #333;
+    box-shadow: none;
+}
+
+.volume-slider input[type="range"] {
+    width: 150px;
+}
+
+.volume-slider label {
+    display: block;
+    margin-bottom: 5px;
 }

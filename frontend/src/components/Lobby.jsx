@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import "./Lobby.css"
 
-function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, playerName, setPictureDisplay}) {
+function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLobbyCreated, lobbyCreated, playerName, setPictureDisplay, gameMusic, handleMusicOnStart, handleMusicOnGameStart}) {
     /* const [playerName, setPlayerName] = useState(""); */
     const [lobbyId, setLobbyId] = useState("");
     const [players, setPlayers] = useState([]);
     const [settings, setSettings] = useState({
-        wordLength: 5,
+        /* wordLength: 5, */
         timeLimit: 30,
         difficulty: "medium",
         rounds: 5, // Default number of rounds
@@ -23,6 +23,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
         socket.emit("createLobby", { playerName });
         setLobbyCreated(true);
         setPictureDisplay(false)
+        handleMusicOnStart()
     };
 
     const handleJoinLobby = () => {
@@ -33,6 +34,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
         socket.emit("joinLobby", { lobbyId, playerName });
         setLobbyCreated(true);
         setPictureDisplay(false)
+        handleMusicOnStart()
     };
 
     const handleUpdateSettings = () => {
@@ -43,6 +45,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
     const handleStartGame = () => {
         socket.emit("startGame", { lobbyId }); // Ensure lobbyId is correctly passed
         console.log("startGame event emitted with lobbyId:", lobbyId); // Debugging log
+        handleMusicOnGameStart();
         /* setGameStarted(true)
         setIsGameOver(false) */
         
@@ -52,12 +55,14 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
     
 
     useEffect(() => {
-        socket.on("lobbyUpdate", (lobby) => {
-            setLobbyId(lobby.host);
+        socket.on("lobbyUpdate", (lobby) => {           
+            setLobbyId(lobby.id);
+            setParentLobbyId(lobby.id);
+             
             setPlayers(lobby.players);
             setSettings(lobby.settings);
             setIsHost(socket.id === lobby.host);
-            setParentLobbyId(lobby.host);
+           
             console.log("lobby Update caught")
         });
 
@@ -80,7 +85,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
     return (
         <div>
             {!lobbyCreated ? (
-                <div>
+                <div className="lobby">
                     <h2>Lobby</h2>
                    {/*  <input
                         type="text"
@@ -109,7 +114,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                     {isHost ? (
                         <div>
                             <h3>Game Settings</h3>
-                            <label>
+                            {/* <label>
                                 Word Length:
                                 <input
                                     type="number"
@@ -118,7 +123,7 @@ function Lobby({ onStart, setParentLobbyId, setGameStarted, setIsGameOver, setLo
                                         setSettings({ ...settings, wordLength: parseInt(e.target.value) })
                                     }
                                 />
-                            </label>
+                            </label> */}
                             <label>
                                 Time Limit (seconds):
                                 <input

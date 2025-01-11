@@ -1,17 +1,13 @@
-const easyWords = ["cat", "dog", "bat", "rat"];
-const mediumWords = ["table", "apple", "chair", "grape"];
-const hardWords = ["complex", "journey", "mystery", "universe"];
+const fs = require('fs');
 
-function generateWord(length, difficulty) {
-    let wordList;
+let wordData = JSON.parse(fs.readFileSync('utils/words.json', 'utf-8'));
 
-    if (difficulty === "easy") wordList = easyWords;
-    else if (difficulty === "medium") wordList = mediumWords;
-    else if (difficulty === "hard") wordList = hardWords;
-
-    // Filter words by length
-    const filteredWords = wordList.filter((word) => word.length === length);
-    return filteredWords[Math.floor(Math.random() * filteredWords.length)];
+function generateWord(difficulty) {
+    const wordList = wordData[difficulty];
+    if (!wordList) throw new Error("Invalid difficulty level");
+    
+    return wordList[Math.floor(Math.random() * wordList.length)];
 }
+
 
 module.exports = generateWord;
