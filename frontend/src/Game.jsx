@@ -57,10 +57,21 @@ function Game() {
         setIsHost1(socket.id === lobby.host);
     });
 
-    socket.on("gameOver", () => {
+    /* socket.on("gameOver", () => {
         setIsGameOver(true);
+        
     });
-
+ */
+    socket.on("gameOver", () => {
+        console.log("Game over event received");
+    
+        // Delay the game over state by 2 seconds
+        setTimeout(() => {
+            setIsGameOver(true);
+            console.log("Game over state set after 2 seconds");
+        }, 2000);
+    });
+    
 
     socket.on("leaderboardUpdate", (updatedLeaderboard) => {
         setLeaderboard(updatedLeaderboard); // Update the leaderboard

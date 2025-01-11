@@ -49,6 +49,12 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
         }
     };
 
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter") {
+            handleGuess(); // Call the submit function
+        }
+    };
+
     return (
         <div className="game-screen">
             <h2>Game Screen</h2>
@@ -65,6 +71,7 @@ function GameScreen({ lobyId, jumbledWord, timer, setTimer, currentRound, totalR
                 type="text"
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
+                onKeyDown={handleKeyDown} // Listen for keydown events
                 placeholder="Type your guess here"
             />
             <button onClick={handleGuess} disabled={!jumbledWord}>

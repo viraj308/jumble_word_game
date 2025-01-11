@@ -187,8 +187,8 @@ const setupSockets = (io) => {
                 const points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
                 player.points += points; */
                 // Update the player's points
-                let points = calculatePoints(guess, lobby.settings.difficulty, lobby.gameState.startTime);
-                points = parseFloat(points.toFixed(2)); // Ensure two digits after the decimal
+                let points = calculatePoints(guess, lobby.gameState.startTime);
+               /*  points = parseFloat(points.toFixed(2)); // Ensure two digits after the decimal */
                 player.points += points;
 
 

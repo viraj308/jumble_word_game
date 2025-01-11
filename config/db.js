@@ -1,8 +1,11 @@
 const mongoose = require("mongoose")
+require('dotenv').config();
+
+const db_url = process.env.MONGO_URL;
 
 const connect =  () => {
     // MongoDB Connection
-    mongoose.connect("mongodb+srv://virajchavan308:MADHUSUDAN@cluster0.d3pa3.mongodb.net/Jumbled_word_game?retryWrites=true&w=majority&appName=Cluster0", {
+    mongoose.connect(db_url, {
     }).then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log("MongoDB Connection Error:", err));
 
