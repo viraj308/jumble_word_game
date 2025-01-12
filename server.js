@@ -10,6 +10,12 @@ const passport = require("passport");
 const db = require("./config/db");
 const setupPassport = require("./config/passport");
 
+require('dotenv').config();
+
+const MONGO_URL = process.env.MONGO_URL
+
+const MongoStore = require("connect-mongo");  // Import MongoStore
+
 // Initialize MongoDB Connection
 db.connect();
 
@@ -39,6 +45,11 @@ app.use(session({
     secret: "secret-key", 
     resave: false,
     saveUninitialized: true,
+    store: MongoStore.create({
+      mongoUrl: MONGO_URL, // MongoDB connection URL (change it to your DB URI)
+      collectionName: "sessions", // Optional, default is "sessions"
+      ttl: 14 * 24 * 60 * 60, // Session expiration time (14 days)
+    }),
     cookie: {
       httpOnly: true,
       secure: false, // Set to true if using HTTPS
